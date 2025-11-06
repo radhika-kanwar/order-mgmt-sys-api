@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="post-records-test-suite.xml" />
+	<munit:test name="post-records-test-case"
+		doc:id="ab9629fa-6adc-4be7-9bf9-b2a522e619af" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Insert DB Connector" doc:id="117ed6f2-c392-43d3-8c3f-976995f2560a" processor="db:insert">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="865a763d-2134-4e88-aeea-c21ea0bb609f" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<munit:set-event doc:name="Header and Payload Values" doc:id="b75e42c7-b861-43eb-a749-cd5f48ee964f" >
+				<munit:payload value='#[[{&#10;  "name": "Ava",&#10;  "email": "ava@gmail.com",&#10;  "phone": "8765328229"&#10;}]]' />
+				<munit:attributes value='#[{&#10;	"headers": {&#10;		"table-name": "customers",&#10;		"primary-key": "customer_id"&#10;	},&#10;	"uriParams": {&#10;		"id": "1"&#10;	}&#10;}]' />
+				<munit:variables >
+					<munit:variable key="dbOutput" value='#[output application/json --- {"affectedRows": 1, "generatedKeys": {"customer_id": 1}}]' encoding="UTF-8" mediaType="application/json" />
+				</munit:variables>
+
+			</munit:set-event>
+			<flow-ref
+				doc:name="post:\entities:application\json:oms-sys-api-config"
+				doc:id="94181b0f-7cc4-4424-a84d-2912fdaf098f"
+				name="post:\entities:application\json:oms-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="End Logger" doc:id="12ae165f-2a91-4a60-8cef-7aadf6be90e2" processor="logger" atLeast="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="a7f225bb-6115-439e-9be0-eb84f858b251" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+</mule>

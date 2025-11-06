@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd">
+    <flow name="oms-sys-api-main">
+        <http:listener config-ref="oms-sys-api-http-listener-config" path="/api/*" doc:name="/api/*">
+            <redelivery-policy />
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <set-variable value="#[%dw 2.0&#xA;output application/java&#xA;---&#xA;attributes.headers.'x-correlation-id' default correlationId]" doc:name="correlationId" doc:id="72f6a8cf-b140-48da-8f59-e61446ec00c2" variableName="correlationId" />
+		<apikit:router config-ref="oms-sys-api-config" />
+		<error-handler ref="global-error-handler" />
+    </flow>
+    <flow name="delete:\entities\(id):oms-sys-api-config" doc:id="8bdbbf6d-d24d-4501-b2f5-3f14e9738e6f">
+		<flow-ref doc:name="delete-records-sub-flow" doc:id="4c4e0bcb-51ff-45cb-9ae7-86bb2a6671b3" name="delete-records-sub-flow"/>
+    </flow>
+	<flow name="patch:\entities\(id):application\json:oms-sys-api-config" doc:id="5c2e152a-2108-4ae2-b67d-406506b2b373">
+		<flow-ref doc:name="patch-records-sub-flow" doc:id="34896af2-7a4e-4ef5-a435-cf5bd5c7c384" name="patch-records-sub-flow"/>
+    </flow>
+    <flow name="get:\entities:oms-sys-api-config" doc:id="97d4b33c-b1cf-468b-b2da-c0029291b49c">
+		<flow-ref doc:name="get-records-sub-flow" doc:id="a05b5da3-84db-495e-a12e-1172e4ef4ced" name="get-records-sub-flow"/>
+    </flow>
+    <flow name="post:\entities:application\json:oms-sys-api-config" doc:id="5c3318fe-f37d-49a4-bc4c-5894699bd690">
+		<flow-ref doc:name="post-records-sub-flow" doc:id="07ccaa10-2897-4e2b-9ef8-8d8eadc99118" name="post-records-sub-flow"/>
+    </flow>
+    <flow name="get:\healthCheck:oms-sys-api-config" doc:id="b7b84b9b-fcd2-4da2-a12a-601530a48105">
+		<flow-ref doc:name="get-health-status-sub-flow" doc:id="0c7aeff8-3dcf-48de-aece-1eb15abc9b3b" name="get-health-status-sub-flow" />
+    </flow>
+</mule>

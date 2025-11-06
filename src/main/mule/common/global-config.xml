@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+	<apikit:config name="oms-sys-api-config" api="resource::ce235d46-115c-497c-b0e2-474afd80f5e9:oms-sys-api:4.0.2:raml:zip:oms-sys-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <http:listener-config name="oms-sys-api-http-listener-config">
+        <http:listener-connection host="0.0.0.0" port="${http.port}" readTimeout="${http.timeout}" />
+    </http:listener-config>
+	<db:config name="oms-sys-api-database-config" doc:name="Database Config" doc:id="67276897-3fff-4603-8bed-306301017b4c" >
+		<db:my-sql-connection host="${db.host}" port="${db.port}" user="${secure::db.user}" password="${secure::db.password}" database="${secure::db.database}" />
+	
+</db:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="fa0b5be1-b1c1-4127-8d95-3421cf725e50" file="properties\config-${mule.env}.yaml" />
+	<secure-properties:config name="oms-secure-properties-config" doc:name="Secure Properties Config" doc:id="99f045bc-e99c-45c0-8efd-d10dd3b0aded" file="properties\secure\config-${mule.env}-secure.yaml" key="${mule.key}" />
+	<configuration-properties doc:name="Configuration properties" doc:id="a5416cfa-9901-4219-88fd-84deadf47eb9" file="properties\common\config-common.yaml" />
+
+</mule>

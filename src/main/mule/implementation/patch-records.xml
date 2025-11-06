@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="patch-records-sub-flow" doc:id="bd43a783-3c53-4364-8034-20777cd23de5" >
+		<logger level="INFO" doc:name="START" doc:id="226418af-e5a0-42b4-8039-d5c5e0eb2414" message="#[%dw 2.0 &#10;output application/json&#10;---&#10;{&#10;	&quot;flowName&quot;: flow.name,&#10;	&quot;table&quot;: attributes.headers.'table-name',&#10;	&quot;timeStamp&quot;: now(),&#10;	&quot;correlationId&quot;: vars.correlationId,&#10;	&quot;message&quot;: &quot;The flow has started.&quot;&#10;}]"/>
+		<ee:transform doc:name="Prepating Query" doc:id="be4e4740-c343-4e6a-9197-d72d222c8cb9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+var table      = attributes.headers.'table-name' default ""
+var primaryKey = attributes.headers.'primary-key'
+var keys       = keysOf(payload)
+var setClause  = ((keys map (n) -> n ++ " = :" ++ n) joinBy  ",")
+---
+{
+  sql: "UPDATE " ++ table ++ " SET " ++ setClause ++ " WHERE " ++ primaryKey ++ " = :" ++ primaryKey,
+  params: 
+        (payload mapObject ((value, key) -> (key): value))
+        ++ 
+        {(primaryKey): attributes.uriParams.id}
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:update doc:name="Records" doc:id="990188bb-e216-4281-92bb-466a16fd2d2b" config-ref="oms-sys-api-database-config" target="dbOutput">
+			<db:sql ><![CDATA[#[payload.sql]
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[payload.params]]]></db:input-parameters>
+		</db:update>
+		<choice doc:name="Records found?" doc:id="90a3174a-3a94-48aa-9c29-29bc08cd4cae" >
+			<when expression="#[vars.dbOutput.affectedRows == 0]">
+				<raise-error doc:name="CUSTOM:NO_RECORD_FOUND" doc:id="80f302ba-e922-44d8-9334-bc097c2c6206" type="CUSTOM:NO_RECORD_FOUND" description="No records found in the table." />
+			
+</when>
+			<otherwise >
+				<ee:transform doc:name="Preparing Response" doc:id="fede7d0c-cd64-4bbd-a8b9-f7f0ae6187da">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+
+---
+
+{
+	"message": "Values updated successfully!",
+	"updated fields": payload.params
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="END" doc:id="6ce895ba-3f48-4cf6-aee4-6e01238f744c" message="#[%dw 2.0 &#10;output application/json&#10;---&#10;{&#10;	&quot;flowName&quot;: flow.name,&#10;	&quot;table&quot;: attributes.headers.'table-name',&#10;	&quot;timeStamp&quot;: now(),&#10;	&quot;correlationId&quot;: vars.correlationId,&#10;	&quot;message&quot;: &quot;The flow has ended.&quot;&#10;}]" />
+</sub-flow>
+	</mule>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation=" http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd http://www.mulesoft.org/schema/mule/munit-tools http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="oms-sys-api-test-suite.xml">
+		<munit:parameterizations
+			file="get-records-tests\get-records-parameters.yaml" />
+	</munit:config>
+	<munit:test name="get-records-parameterized-test"
+		doc:id="9cea61c1-1a35-4155-ae33-c9a7b5008126" description="Test">
+		<munit:behavior>
+			<munit-tools:mock-when
+				doc:name="Select DB Connector"
+				doc:id="cbceb20f-5d5a-45ed-bc74-235b7cfeff4e" processor="db:select">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute
+						whereValue="649b1617-fa4c-46d2-92dc-d574e425bcf8"
+						attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="dbOutput" value="#[output application/json --- read(Mule::p('db_output'), &quot;application/json&quot;)]" mediaType="application/json" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<munit:set-event doc:name="Header Values"
+				doc:id="7c633374-d917-499d-ae16-ad8f740bbbcc">
+				<munit:attributes
+					value="#[{&#10; &quot;headers&quot;: {&#10; &quot;table-name&quot;: Mule::p('table-name'),&#10; &quot;filter-field&quot;: Mule::p('filter-field')&#10; }&#10;}]" />
+			</munit:set-event>
+			<try doc:name="Try" doc:id="d3a1b201-3d50-48e6-900a-fef4709596f4">
+				<flow-ref doc:name="get:\entities:oms-sys-api-config"
+					doc:id="3e518b11-7f17-447b-ac9b-3be3db2e13cc"
+					name="get:\entities:oms-sys-api-config" />
+				<error-handler>
+					<on-error-continue enableNotifications="true"
+						logException="true" doc:name="On Error Continue"
+						doc:id="9b54cb4e-d4b5-4060-827f-e957900f1b36">
+						<logger level="INFO" doc:name="Logging Error" doc:id="f9fcbf5f-7b44-4926-bca8-11fa30384f93" message='#[%dw 2.0&#10;output json&#10;---&#10;{&#10;	"payload": payload,&#10;	"message": error.detailedDescription&#10;}]'/>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert
+				doc:name="Assert DB Output is Not Null"
+				doc:id="e2437b1c-f123-43d5-88b5-cd633f1196f8" />
+		</munit:validation>
+	</munit:test>
+</mule>

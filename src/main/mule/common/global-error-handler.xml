@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<error-handler name="global-error-handler">
+		<on-error-propagate doc:name="APIKIT Errors" enableNotifications="true" logException="true" when='#[error.errorType.namespace == "APIKIT"]'>
+			<ee:transform doc:name="Status Code Generator">
+				<ee:message>
+					<ee:set-payload><![CDATA[payload]]></ee:set-payload>
+				</ee:message>
+				<ee:variables>
+					<ee:set-variable variableName="httpStatus"><![CDATA[%dw 2.0
+output application/json
+---
+if(error.errorType.asString == "APIKIT:BAD_REQUEST") (400) else
+if(error.errorType.asString == "APIKIT:NOT_FOUND") (404) else
+if(error.errorType.asString == "APIKIT:METHOD_NOT_ALLOWED") (405) else
+if(error.errorType.asString == "APIKIT:NOT_ACCEPTABLE") (406) else
+if(error.errorType.asString == "APIKIT:UNSUPPORTED_MEDIA_TYPE") (415) else (500)]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<ee:transform doc:name="Preparing Error Response" doc:id="e8099942-02e2-44a0-b17e-af0d253865fc" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"correlationId": vars.correlationId,
+	"statusCode": vars.httpStatus,
+	"statusMessage": error.errorType,
+	"description": error.detailedDescription,
+	"timestamp": (now() as String {format : "yyyy/MM/dd HH:mm:ss"})
+}
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		
+</on-error-propagate>
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="Custom Error"
+			doc:id="203e996d-beeb-4b54-88e7-029774cfbb6e"
+			type="CUSTOM:NO_RECORD_FOUND">
+			<ee:transform doc:name="Preparing Error Response"
+				doc:id="c2667eca-9b92-424d-887b-d283b6d81218">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"correlationId": vars.correlationId,
+	"statusCode": 404,
+	"statusMessage": error.errorType,
+	"description": error.description,
+	"timestamp": now() as String {format : "yyyy/MM/dd HH:mm:ss"}
+}]]></ee:set-payload>
+				</ee:message>
+				<ee:variables>
+					<ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="Generic"
+			doc:id="c042f49d-ad1c-464c-aa5e-863f79faaf7a">
+			<ee:transform doc:name="Status Code Generator" doc:id="8891fb3c-9fc1-49c3-aded-1d79366a8c32" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[payload]]></ee:set-payload>
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/json
+---
+if(error.errorType.identifier == "BAD_REQUEST") (400) else
+if(error.errorType.identifier == "NOT_FOUND" and !isEmpty(error.muleMessage.payload))(404) else
+if(error.errorType.identifier == "NOT_FOUND" and isEmpty(error.muleMessage.payload))(504) else
+if(error.errorType.identifier == "METHOD_NOT_ALLOWED") (405) else
+if(error.errorType.identifier == "UNAUTHORIZED" or error.errorType.identifier == "FORBIDDEN") (401) else
+if(error.errorType.identifier == "GATEWAY_TIMEOUT") (504) else
+if(error.errorType.identifier == "BAD_GATEWAY") (502) else
+(500)]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<ee:transform doc:name="Preparing Error Response" doc:id="1890b2a2-b1bf-4f4a-b0db-d0d8010d5e90" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"correlationId": vars.correlationId,
+	"statusCode": vars.httpStatus default 500,
+	"statusMessage": error.errorType,
+	"description": error.detailedDescription,
+	"timestamp": now() as String {format : "yyyy/MM/dd HH:mm:ss"},
+}
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+	</error-handler>
+</mule>

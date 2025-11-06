@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="oms-sys-api-test-suite.xml" />
+	<munit:test name="oms-sys-api-test-case" doc:id="12d2b923-4729-4f3c-8298-f0a38346d570" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock APIkit Router" doc:id="3b54d3fc-b987-4e76-ae79-b4507506c86a" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="oms-sys-api-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="oms-sys-api-main" doc:id="fe0b4535-7984-4117-a46b-3a977fbfebcd" name="oms-sys-api-main"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="APIkit Router" doc:id="927c580a-c96e-4228-9c37-d5a39bfd2bb9" processor="apikit:router" atLeast="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="oms-sys-api-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="oms-sys-api-error-case-1" doc:id="bf4bc63e-adf9-46b4-80f1-507e6d97d323" description="Test" expectedErrorType="APIKIT:ANY">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock APIkit Router Error" doc:id="3fec4e65-0b4b-4671-a65b-52430e9042f1" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="oms-sys-api-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="APIKIT:BAD_REQUEST" />
+				</munit-tools:then-return>
+			
+
+</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="oms-sys-api-main" doc:id="3369431c-b4f6-4aca-b712-39b302355d22" name="oms-sys-api-main"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Preparing Error Message" doc:id="91e17417-f4e5-4ab4-ad47-c6995532b90c" processor="ee:transform" atLeast="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="e8099942-02e2-44a0-b17e-af0d253865fc" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+
+
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="oms-sys-api-error-case-2" doc:id="b635d226-dd30-4953-9fc8-46bf5efa11a1" description="Test" expectedErrorType="CUSTOM:NO_RECORD_FOUND">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock APIkit Router Error" doc:id="ad90bb09-1eb4-4442-81ba-4daddc5d88e8" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="oms-sys-api-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="CUSTOM:NO_RECORD_FOUND" />
+				</munit-tools:then-return>
+			
+</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="oms-sys-api-main" doc:id="c320b08d-2794-4b46-b2be-14df129868ba" name="oms-sys-api-main"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Preparing Error Message" doc:id="34709464-88a3-4488-9bc2-dde18ed3c3a6" processor="ee:transform" atLeast="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c2667eca-9b92-424d-887b-d283b6d81218" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="oms-sys-api-error-case-3" doc:id="6fb2e19c-1a1e-4bd6-be92-5ba9f7472444" description="Test" expectedErrorType="ANY">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock APIkit Router Error" doc:id="93193f40-c4f1-4d60-aee2-390f7a6d98e4" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="oms-sys-api-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:METHOD_NOT_ALLOWED" />
+				</munit-tools:then-return>
+			
+
+</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="oms-sys-api-main" doc:id="806e60cb-cdc4-4ace-b3e7-76ff92cf0317" name="oms-sys-api-main"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Preparing Error Message" doc:id="58ede505-9813-4b65-880a-3fc1008ce6d5" processor="ee:transform" atLeast="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="1890b2a2-b1bf-4f4a-b0db-d0d8010d5e90" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+
+
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+
+</mule>

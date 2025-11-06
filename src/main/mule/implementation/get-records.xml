@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="get-records-sub-flow" doc:id="63ff167c-df60-4c03-b17e-a1cda73e7ef1" >
+		<logger level="INFO" doc:name="START" doc:id="cd9f5259-935d-42fa-af76-d371b3a98dca" message="#[%dw 2.0 &#10;output application/json&#10;---&#10;{&#10;	&quot;flowName&quot;: flow.name,&#10;	&quot;table&quot;: attributes.headers.'table-name',&#10;	&quot;timeStamp&quot;: now(),&#10;	&quot;correlationId&quot;: vars.correlationId,&#10;	&quot;message&quot;: &quot;The flow has started.&quot;&#10;}]"/>
+		<ee:transform doc:name="Preparing Query" doc:id="2fcffa53-990d-49ad-bb19-3e2f8f240b1f">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+
+var table = (attributes.headers.'table-name' default "")
+var filter = attributes.headers.'filter-field'
+var qParams = attributes.queryParams
+---
+{
+  sql: 
+    if (qParams.id != null and qParams.id != "")
+      ("SELECT * FROM " ++ table ++ " WHERE " ++ filter ++ " = :id")
+    else
+      ("SELECT * FROM " ++ table),
+  param: 
+    if (qParams.id != null and qParams.id != "")
+      { id: qParams.id }
+    else {}
+}
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+		<db:select doc:name="Records" doc:id="649b1617-fa4c-46d2-92dc-d574e425bcf8" config-ref="oms-sys-api-database-config" target="dbOutput">
+					<db:sql><![CDATA[#[payload.sql]]]></db:sql>
+			<db:input-parameters><![CDATA[#[payload.param]]]></db:input-parameters>
+				
+</db:select>
+		<choice doc:name="Records found?" doc:id="92d87759-28f3-4d2d-8e73-b32b428fb193" >
+			<when expression="#[sizeOf(vars.dbOutput) == 0]">
+				<raise-error doc:name="CUSTOM:NO_RECORD_FOUND" doc:id="2da478b3-640a-42cf-b65a-14528251231b" type="CUSTOM:NO_RECORD_FOUND" description="No records found in the table." />
+			
+</when>
+			<otherwise >
+				<ee:transform doc:name="Preparing Response" doc:id="b9fb5e82-2c22-4cfa-b363-cd447f4ddcbb">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+
+var rows = vars.dbOutput default (payload)
+---
+rows
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="END" doc:id="a4a3279f-ac22-41fc-92d2-def3fecbb353" message="#[%dw 2.0 &#10;output application/json&#10;---&#10;{&#10;	&quot;flowName&quot;: flow.name,&#10;	&quot;table&quot;: attributes.headers.'table-name',&#10;	&quot;timeStamp&quot;: now(),&#10;	&quot;correlationId&quot;: vars.correlationId,&#10;	&quot;message&quot;: &quot;The flow has ended.&quot;&#10;}]"/>
+	</sub-flow>
+	</mule>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="patch-records-test-suite.xml" />
+	<munit:test name="patch-records-success-test-case"
+		doc:id="4d09dff8-214a-429d-9613-f002ea4a11b3" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Update DB Connector" doc:id="097e6e0a-d8fd-49dc-a731-8c94d0d24497" processor="db:update">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="990188bb-e216-4281-92bb-466a16fd2d2b" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="dbOutput" value='#[output application/json --- {"affectedRows": 1}]' mediaType="application/json" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+			<munit:set-event doc:name="Header and Payload Values" doc:id="da6b4bcc-4d8b-4f65-ae20-0b56c9a07355" >
+				<munit:payload value='#[{&#10;    "email": "lizzyydarcy@gmail.com"&#10;}]' />
+				<munit:attributes value='#[{&#10;	"headers": {&#10;		"table-name": "customers",&#10;		"primary-key": "customer_id"&#10;	},&#10;	"uriParams": {&#10;		"id": "1"&#10;	}&#10;}]' />
+			
+</munit:set-event>
+			<flow-ref
+				doc:name="patch:\entities\(id):application\json:oms-sys-api-config"
+				doc:id="8a75a490-e04b-4ba5-8a8e-6c1e7a5c006d"
+				name="patch:\entities\(id):application\json:oms-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="End Logger" doc:id="602d05f0-53fe-43d1-9351-ab8d727375d6" processor="logger" atLeast="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="6ce895ba-3f48-4cf6-aee4-6e01238f744c" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="patch-records-error-test-case"
+		doc:id="8ffd7b9a-6584-49a3-98fe-fb4549624b1f" description="Test" expectedErrorType="CUSTOM:NO_RECORD_FOUND">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Update DB Connector" doc:id="2a99cf10-780b-4d64-8723-7da32dba8b0d" processor="db:update">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="990188bb-e216-4281-92bb-466a16fd2d2b" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="dbOutput" value='#[output application/json --- {"affectedRows": 0, "generatedKeys": {}}]' mediaType="application/json" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			
+</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution>
+		<munit:set-event doc:name="Header and Payload Values" doc:id="7b65ea94-db1d-4408-b451-1f58c518c84f" >
+				<munit:payload value='#[{&#10;    "email": "lizzyydarcy@gmail.com"&#10;}]' />
+				<munit:attributes value='#[{&#10;	"headers": {&#10;		"table-name": "customers",&#10;		"primary-key": "customer_id"&#10;	},&#10;	"uriParams": {&#10;		"id": "1"&#10;	}&#10;}]' />
+
+			
+</munit:set-event>
+			<flow-ref
+				doc:name="patch:\entities\(id):application\json:oms-sys-api-config"
+				doc:id="41973126-9928-4269-bf80-6a6947d861fc"
+				name="patch:\entities\(id):application\json:oms-sys-api-config" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Raise Error" doc:id="78916291-914d-47e3-a0e0-a813ba46c88e" processor="raise-error" atLeast="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="80f302ba-e922-44d8-9334-bc097c2c6206" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+
+			</munit-tools:verify-call>
+		</munit:validation>
+	
+</munit:test>
+
+</mule>

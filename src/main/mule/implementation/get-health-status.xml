@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="get-health-status-sub-flow" doc:id="3392b213-0315-4f6b-a006-b9232af660cf" >
+		<ee:transform doc:name="Preparing Response" doc:id="ad4c5608-1dbf-4059-a383-e6a290fb523f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Flow name": flow.name,
+	"Correlation ID": vars.correlationId,
+	"Time": now(),
+	"Message": "The API is alive and kicking."
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Health Check" doc:id="e63aedba-a0b4-4edc-9d8e-17739b53b153" message='#[%dw 2.0 &#10;output application/json&#10;---&#10;{&#10;	"flowName": flow.name,&#10;	"timeStamp": now(),&#10;	"correlationId": vars.correlationId,&#10;	"message": "Health check successful."&#10;}]' />
+	</sub-flow>
+</mule>
