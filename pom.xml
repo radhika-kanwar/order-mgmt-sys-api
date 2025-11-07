@@ -40,11 +40,12 @@
 					<cloudhub2Deployment>
 						<uri>https://anypoint.mulesoft.com</uri>
 						<provider>MC</provider>
-						<environment>${env}</environment>
+						<environment>${environment}</environment>
 						<server>${server}</server>
 						<target>${target}</target>
 						<releaseChannel>${releaseChannel}</releaseChannel>
 						<javaVersion>${javaVersion}</javaVersion>
+						<applicationName>${applicationName}</applicationName>
 						<replicas>${replica}</replicas>
 						<vCores>${vCore}</vCores>
 						<properties>
