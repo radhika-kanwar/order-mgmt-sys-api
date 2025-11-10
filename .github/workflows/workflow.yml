@@ -153,5 +153,5 @@ jobs:
             -DvCore="${{ inputs.vCore }}" \
             -D"mule.env"="${{vars.env}}" \
             -D"enc.key"="${{ secrets.enc_key }}" \
-            -D"applicationName"="oms-sys-api-${{ inputs.environment | toLowerCase }}"
+            -D"applicationName"="oms-sys-api-${{vars.env}}"
 
