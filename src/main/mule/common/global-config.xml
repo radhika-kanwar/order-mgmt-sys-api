@@ -15,7 +15,7 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
         <http:listener-connection host="0.0.0.0" port="${http.port}" readTimeout="${http.timeout}" />
     </http:listener-config>
 	<db:config name="oms-sys-api-database-config" doc:name="Database Config" doc:id="67276897-3fff-4603-8bed-306301017b4c" >
-		<db:my-sql-connection host="${db.host}" port="${db.port}" user="${secure::db.user}" password="${secure::db.password}" database="${secure::db.database}" />
+		<db:oracle-connection host="${db.host}" port="${db.port}" user="${secure::db.user}" password="${secure::db.password}" instance="${secure::db.instance}"/>
 	
 </db:config>
 	<configuration-properties doc:name="Configuration properties" doc:id="fa0b5be1-b1c1-4127-8d95-3421cf725e50" file="properties\config-${mule.env}.yaml" />
