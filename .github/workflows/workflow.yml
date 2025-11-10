@@ -22,7 +22,7 @@ on:
       target:
         description: "CloudHub2 Target"
         required: true
-        default: "CH2-SharedSpace"
+        default: "Cloudhub-US-East-1"
       releaseChannel:
         description: "Deployment Release Channel"
         required: true
