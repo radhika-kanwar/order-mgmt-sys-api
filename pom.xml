@@ -41,7 +41,7 @@
 						<uri>https://anypoint.mulesoft.com</uri>
 						<provider>MC</provider>
 						<environment>${environment}</environment>
-						<server>${server}</server>
+						<server>anypoint-exchange-v3</server>
 						<target>${target}</target>
 						<releaseChannel>${releaseChannel}</releaseChannel>
 						<javaVersion>${javaVersion}</javaVersion>
