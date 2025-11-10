@@ -1,0 +1,157 @@
+# The name of the workflow, which is displayed in the GitHub Actions tab. 
+name: Deploying mule application to CloudHub 2.0
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deployment Environment"
+        required: true
+        type: choice
+        options:
+          - DEV
+          - UAT
+          - PROD
+      java:
+        description: "Java Version"
+        required: true
+        type: choice
+        options:
+          - '8'
+          - '17'
+      target:
+        description: "CloudHub2 Target"
+        required: true
+        default: "CH2-SharedSpace"
+      releaseChannel:
+        description: "Deployment Release Channel"
+        required: true
+        default: "edge"
+      replica:
+        description: "Number of Replicas"
+        required: true
+        default: "1"
+      vCore:
+        description: "vCore Allocation"
+        required: true
+        default: "0.1"
+      commit:
+        description: "Commit Message"
+        required: true
+        type: string
+
+run-name: "Commit: ${{ inputs.commit }} | Env: ${{ inputs.environment }} | App: oms-sys-api"
+
+jobs:
+  Test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout Repository"
+        uses: actions/checkout@v4
+
+      - name: "Cache Maven Dependencies"
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+
+      - name: "Setup Java ${{ inputs.java }}"
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '${{ inputs.java }}'
+
+      - name: "Run MUnit Tests"
+        run: mvn clean test -D"mule.env"="${{vars.env}}" -D"enc.key"="${{ secrets.enc_key }}" --settings settings/settings.xml
+      - name: "Upload MUnit Report"
+        uses: actions/upload-artifact@v4
+        with:
+          name: "Munit Coverage Report"
+          path: target/site/munit/coverage
+          retention-days: 2
+
+  Build:
+    needs: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout Repository"
+        uses: actions/checkout@v4
+
+      - name: "Cache Dependencies"
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+
+      - name: "Setup Java ${{ inputs.java }}"
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '${{ inputs.java }}'
+
+      - name: "Build Mule Application"
+        run: |
+          mvn -B clean package -D"mule.env"="prod" -D"enc.key"="${{ secrets.enc_key }}" -DskipTests --settings settings/settings.xml
+
+      - name: "Upload Built Artifact"
+        uses: actions/upload-artifact@v4
+        with:
+          name: "Artifacts"
+          path: target/*.jar
+          retention-days: 2
+
+  Publish-To-Exchange:
+      needs: Build
+      runs-on: ubuntu-latest
+      steps:
+      - name: "Checkout Repository ${{ github.repository }}"
+        uses: actions/checkout@v4
+        
+      - name: "Cache Dependencies"
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+            
+      - name: "Download the JAR File"
+        uses: actions/download-artifact@v4
+        with:
+          name: "Artifacts"
+          
+      - name: "Publish to Exchange"
+        run: mvn deploy -DskipTests --settings settings/settings.xml
+
+  Deploy-To-CloudHub:
+    needs: Publish-To-Exchange
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout Repository"
+        uses: actions/checkout@v4
+
+      - name: "Cache Maven Repo"
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+
+      - name: "Download Built Artifact"
+        uses: actions/download-artifact@v4
+        with:
+          name: "Built-App"
+
+      - name: "Deploy to CloudHub 2.0"
+        run: |
+          mvn clean deploy -DmuleDeploy -DskipTests \
+            -Denvironment="${{ inputs.environment }}" \
+            -Dtarget="${{ inputs.target }}" \
+            -DreleaseChannel="${{ inputs.releaseChannel }}" \
+            -DjavaVersion="${{ inputs.java }}" \
+            -Dreplica="${{ inputs.replica }}" \
+            -DvCore="${{ inputs.vCore }}" \
+            -D"mule.env"="${{vars.env}}" \
+            -D"enc.key"="${{ secrets.enc_key }}" \
+            -D"applicationName"="oms-sys-api-${{ inputs.environment | toLowerCase }}"
+
