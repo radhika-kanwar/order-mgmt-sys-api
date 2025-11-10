@@ -44,7 +44,6 @@ run-name: "Commit: ${{ inputs.commit }} | Env: ${{ inputs.environment }} | App: 
 
 jobs:
   Build:
-    needs: Test
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout Repository"
