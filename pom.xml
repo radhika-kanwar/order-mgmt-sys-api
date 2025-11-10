@@ -78,6 +78,7 @@
 					</execution>
 				</executions>
 				<configuration>
+				<muleVersion>${app.runtime}</muleVersion>
 					<coverage>
 						<runCoverage>true</runCoverage>
 						<formats>

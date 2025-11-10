@@ -9,4 +9,40 @@
 	  <password>03421d8994a843b986a45d2c4174ac5d~?~Cf5EB60Ba84843c9b916485a3fc78c52</password>
     </server>
   </servers>
+<profiles>
+    <profile>
+      <id>mule-repos</id>
+
+      <!-- Standard MuleSoft Repositories -->
+      <repositories>
+        <repository>
+          <id>mulesoft-releases</id>
+          <name>MuleSoft Releases</name>
+          <url>https://repository.mulesoft.org/releases/</url>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>false</enabled></snapshots>
+        </repository>
+
+        <repository>
+          <id>anypoint-exchange-v3</id>
+          <name>Anypoint Exchange</name>
+          <url>https://maven.anypoint.mulesoft.com/api/v3/maven</url>
+          <layout>default</layout>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>false</enabled></snapshots>
+        </repository>
+      </repositories>
+
+      <pluginRepositories>
+        <pluginRepository>
+          <id>mulesoft-releases</id>
+          <name>MuleSoft Plugin Releases</name>
+          <url>https://repository.mulesoft.org/releases/</url>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>false</enabled></snapshots>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+  </profiles>
+
 </settings>
