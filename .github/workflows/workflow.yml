@@ -63,7 +63,7 @@ jobs:
           java-version: '${{ inputs.java }}'
 
       - name: "Run MUnit Tests"
-        run: mvn clean test -D"mule.env"="${{vars.env}}" -D"enc.key"="${{ secrets.enc_key }}" --settings settings/settings.xml
+        run: mvn clean test -D"mule.env"="${{vars.env}}" -D"mule.key"="${{ secrets.enc_key }}" --settings settings/settings.xml
       - name: "Upload MUnit Report"
         uses: actions/upload-artifact@v4
         with:
@@ -92,7 +92,7 @@ jobs:
 
       - name: "Build Mule Application"
         run: |
-          mvn -B clean package -D"mule.env"="prod" -D"enc.key"="${{ secrets.enc_key }}" -DskipTests --settings settings/settings.xml
+          mvn -B clean package -D"mule.env"="prod" -D"mule.key"="${{ secrets.enc_key }}" -DskipTests --settings settings/settings.xml
 
       - name: "Upload Built Artifact"
         uses: actions/upload-artifact@v4
@@ -152,6 +152,6 @@ jobs:
             -Dreplica="${{ inputs.replica }}" \
             -DvCore="${{ inputs.vCore }}" \
             -D"mule.env"="${{vars.env}}" \
-            -D"enc.key"="${{ secrets.enc_key }}" \
+            -D"mule.key"="${{ secrets.enc_key }}" \
             -D"applicationName"="oms-sys-api-${{vars.env}}"
 
