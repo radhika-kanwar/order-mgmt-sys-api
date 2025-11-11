@@ -1,8 +1,11 @@
 # The name of the workflow, which is displayed in the GitHub Actions tab. 
-name: Deploying mule application to CloudHub 2.0
+name: Deploying Mule application to CloudHub 2.0
 
+# Defining the trigger
 on:
+  # Manual trigger
   workflow_dispatch:
+    # Parameters for manual trigger workflows
     inputs:
       environment:
         description: "Deployment Environment"
@@ -12,6 +15,7 @@ on:
           - DEV
           - UAT
           - PROD
+      
       java:
         description: "Java Version"
         required: true
@@ -19,41 +23,58 @@ on:
         options:
           - '8'
           - '17'
+      
       target:
         description: "CloudHub2 Target"
         required: true
         default: "Cloudhub-US-East-1"
+      
       releaseChannel:
         description: "Deployment Release Channel"
         required: true
         default: "edge"
+      
       replica:
         description: "Number of Replicas"
         required: true
         default: "1"
+      
       vCore:
         description: "vCore Allocation"
         required: true
         default: "0.1"
+      
       commit:
         description: "Commit Message"
         required: true
         type: string
-
+        
+# Workflow run name
 run-name: "Commit: ${{ inputs.commit }} | Env: ${{ inputs.environment }} | App: oms-sys-api"
 
+# Defining stages in the CI/CD  pipeline
 jobs:
+# 1. Building the Mule application
   Build:
+  # Environment where the job executes
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    
     steps:
-      - name: "Checkout Repository"
-        uses: actions/checkout@v4
+      # Pulling the repo’s code into the runner environment
+      - name: "Checkout Repository ${{ github.repository }}"
+        # Actions - Reusable modules from GitHub Marketplace
+        uses: actions/checkout@v4 # version 4 of the checkout action
 
+      # Used for saving and restoring caches 
       - name: "Cache Dependencies"
         uses: actions/cache@v4
+        # Providing input parameters to actions
         with:
+          # Defining the file-system path to cache
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          # Uniquely identifies the contents of the cache (when to restore or refresh dependencies)
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml')}}
 
       - name: "Setup Java ${{ inputs.java }}"
         uses: actions/setup-java@v4
@@ -63,7 +84,7 @@ jobs:
 
       - name: "Build Mule Application"
         run: |
-          mvn -B clean package -D"mule.env"="prod" -D"mule.key"="${{ secrets.enc_key }}" -DskipTests --settings settings/settings.xml
+          mvn -B clean package -D"mule.env"="${{ vars.env }}" -D"mule.key"="${{ secrets.enc_key }}" -DskipTests -DCONNECTED_APP_ID="${{ secrets.connected_app_id" }} -DCONNECTED_APP_SECRET="${{ secrets.connected_app_secret" }} --settings settings/settings.xml
 
       - name: "Upload Built Artifact"
         uses: actions/upload-artifact@v4
@@ -72,9 +93,12 @@ jobs:
           path: target/*.jar
           retention-days: 2
 
+  # 2. Publishing the asset to Exchange
   Publish-To-Exchange:
       needs: Build
       runs-on: ubuntu-latest
+      environment: ${{ inputs.environment }}
+      
       steps:
       - name: "Checkout Repository ${{ github.repository }}"
         uses: actions/checkout@v4
@@ -93,14 +117,15 @@ jobs:
           name: "Artifacts"
           
       - name: "Publish to Exchange"
-        run: mvn deploy -DskipTests --settings settings/settings.xml
+        run: mvn deploy -DskipTests -DCONNECTED_APP_ID="${{ secrets.connected_app_id" }} -DCONNECTED_APP_SECRET="${{ secrets.connected_app_secret" }} --settings settings/settings.xml
 
+  # 3. Deploying the application to CloudHub 2.0
   Deploy-To-CloudHub:
     needs: Publish-To-Exchange
     runs-on: ubuntu-latest
-    environment: PROD
+    environment: ${{ inputs.environment }}
     steps:
-      - name: "Checkout Repository"
+      - name: "Checkout Repository ${{ github.repository }}"
         uses: actions/checkout@v4
 
       - name: "Cache Maven Repo"
@@ -125,5 +150,8 @@ jobs:
             -DvCore="${{ inputs.vCore }}" \
             -D"mule.env"="${{ vars.env }}" \
             -D"mule.key"="${{ secrets.enc_key }}" \
-            -D"applicationName"="oms-sys-api-prod" --settings settings/settings.xml
+            -D"applicationName"="oms-sys-api-prod" \
+            -DCONNECTED_APP_ID="${{ secrets.connected_app_id" }} \
+            -DCONNECTED_APP_SECRET="${{ secrets.connected_app_secret" }} \
+            --settings settings/settings.xml
 
