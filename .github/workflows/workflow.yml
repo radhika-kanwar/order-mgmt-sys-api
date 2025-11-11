@@ -84,7 +84,7 @@ jobs:
 
       - name: "Build Mule Application"
         run: |
-          mvn -B clean package -Dmule.env="${{ vars.env }}" -Dmule.key="${{ secrets.enc_key }}" -DskipTests -DCONNECTED_APP_ID="${{ secrets.connected_app_id" }}" -DCONNECTED_APP_SECRET="${{ secrets.connected_app_secret }}" --settings settings/settings.xml
+          mvn -B clean package -Dmule.env="${{ vars.env }}" -Dmule.key="${{ secrets.enc_key }}" -DskipTests -DCONNECTED_APP_ID="${{ secrets.connected_app_id }}" -DCONNECTED_APP_SECRET="${{ secrets.connected_app_secret }}" --settings settings/settings.xml
 
       - name: "Upload Built Artifact"
         uses: actions/upload-artifact@v4
@@ -116,7 +116,7 @@ jobs:
           path: target/*.jar
           
       - name: "Publish to Exchange"
-        run: mvn deploy -DskipTests -Dmule.env="${{ vars.env }}" -Dmule.key="${{ secrets.enc_key }}" -DskipTests -DCONNECTED_APP_ID="${{ secrets.connected_app_id" }}" -DCONNECTED_APP_SECRET="${{ secrets.connected_app_secret }}" --settings settings/settings.xml
+        run: mvn deploy -DskipTests -Dmule.env="${{ vars.env }}" -Dmule.key="${{ secrets.enc_key }}" -DskipTests -DCONNECTED_APP_ID="${{ secrets.connected_app_id }}" -DCONNECTED_APP_SECRET="${{ secrets.connected_app_secret }}" --settings settings/settings.xml
 
   # 3. Deploying the application to CloudHub 2.0
   Deploy-To-CloudHub:
@@ -152,7 +152,7 @@ jobs:
             -D"mule.env"="${{ vars.env }}" \
             -D"mule.key"="${{ secrets.enc_key }}" \
             -DapplicationName="oms-sys-api-${{ vars.env }}" \
-            -DCONNECTED_APP_ID="${{ secrets.connected_app_id" }} \
-            -DCONNECTED_APP_SECRET="${{ secrets.connected_app_secret" }} \
+            -DCONNECTED_APP_ID="${{ secrets.connected_app_id }}" \
+            -DCONNECTED_APP_SECRET="${{ secrets.connected_app_secret }}" \
             --settings settings/settings.xml
 
