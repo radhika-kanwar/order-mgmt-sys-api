@@ -84,7 +84,7 @@ jobs:
 
       - name: "Build Mule Application"
         run: |
-          mvn -B clean package -D"mule.env"="${{ vars.env }}" -D"mule.key"="${{ secrets.enc_key }}" -DskipTests -DCONNECTED_APP_ID="${{ secrets.connected_app_id" }} -DCONNECTED_APP_SECRET="${{ secrets.connected_app_secret" }} --settings settings/settings.xml
+          mvn -B clean package -Dmule.env="${{ vars.env }}" -Dmule.key="${{ secrets.enc_key }}" -DskipTests -DCONNECTED_APP_ID="${{ secrets.connected_app_id" }} -DCONNECTED_APP_SECRET="${{ secrets.connected_app_secret" }} --settings settings/settings.xml
 
       - name: "Upload Built Artifact"
         uses: actions/upload-artifact@v4
@@ -108,13 +108,12 @@ jobs:
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
             
       - name: "Download the JAR File"
         uses: actions/download-artifact@v4
         with:
           name: "Artifacts"
+          path: target/*.jar
           
       - name: "Publish to Exchange"
         run: mvn deploy -DskipTests -DCONNECTED_APP_ID="${{ secrets.connected_app_id" }} -DCONNECTED_APP_SECRET="${{ secrets.connected_app_secret" }} --settings settings/settings.xml
@@ -124,11 +123,12 @@ jobs:
     needs: Publish-To-Exchange
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
+    
     steps:
       - name: "Checkout Repository ${{ github.repository }}"
         uses: actions/checkout@v4
 
-      - name: "Cache Maven Repo"
+      - name: "Cache Dependencies"
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
@@ -138,6 +138,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: "Artifacts"
+          path: target/*.jar
 
       - name: "Deploy to CloudHub 2.0"
         run: |
@@ -150,7 +151,7 @@ jobs:
             -DvCore="${{ inputs.vCore }}" \
             -D"mule.env"="${{ vars.env }}" \
             -D"mule.key"="${{ secrets.enc_key }}" \
-            -D"applicationName"="oms-sys-api-prod" \
+            -DapplicationName="oms-sys-api-${{ vars.env }}" \
             -DCONNECTED_APP_ID="${{ secrets.connected_app_id" }} \
             -DCONNECTED_APP_SECRET="${{ secrets.connected_app_secret" }} \
             --settings settings/settings.xml
