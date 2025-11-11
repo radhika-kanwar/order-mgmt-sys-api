@@ -142,7 +142,7 @@ jobs:
 
       - name: "Deploy to CloudHub 2.0"
         run: |
-          mvn clean deploy -DmuleDeploy -DskipTests \
+          mvn deploy -DmuleDeploy -DskipTests \
             -Denvironment="${{ inputs.environment }}" \
             -Dtarget="${{ inputs.target }}" \
             -DreleaseChannel="${{ inputs.releaseChannel }}" \
