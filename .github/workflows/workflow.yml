@@ -54,7 +54,39 @@ run-name: "Commit: ${{ inputs.commit }} | Env: ${{ inputs.environment }} | App: 
 
 # Defining stages in the CI/CD  pipeline
 jobs:
-# 1. Building the Mule application
+
+# 1. Running MUnit Tests
+  Test:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    
+    steps:
+      - name: "Checkout Repository"
+        uses: actions/checkout@v4
+
+      - name: "Cache Maven Dependencies"
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+
+      - name: "Setup Java ${{ inputs.java }}"
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '${{ inputs.java }}'
+
+      - name: "Run MUnit Tests"
+        run: mvn clean test -Dmule.env="${{ vars.env }}" -Dmule.key="${{ secrets.enc_key }}" -DCONNECTED_APP_ID="${{ secrets.connected_app_id }}" -DCONNECTED_APP_SECRET="${{ secrets.connected_app_secret }}" --settings settings/settings.xml
+        
+      - name: "Upload MUnit Report"
+        uses: actions/upload-artifact@v4
+        with:
+          name: "Munit Coverage Report"
+          path: target/site/munit/coverage
+          retention-days: 2
+          
+# 2. Building the Mule application
   Build:
   # Environment where the job executes
     runs-on: ubuntu-latest
@@ -93,7 +125,7 @@ jobs:
           path: target/*.jar
           retention-days: 2
 
-  # 2. Publishing the asset to Exchange
+  # 3. Publishing the asset to Exchange
   Publish-To-Exchange:
       needs: Build
       runs-on: ubuntu-latest
@@ -118,7 +150,7 @@ jobs:
       - name: "Publish to Exchange"
         run: mvn deploy -DskipTests -Dmule.env="${{ vars.env }}" -Dmule.key="${{ secrets.enc_key }}" -DskipTests -DCONNECTED_APP_ID="${{ secrets.connected_app_id }}" -DCONNECTED_APP_SECRET="${{ secrets.connected_app_secret }}" --settings settings/settings.xml
 
-  # 3. Deploying the application to CloudHub 2.0
+  # 4. Deploying the application to CloudHub 2.0
   Deploy-To-CloudHub:
     needs: Publish-To-Exchange
     runs-on: ubuntu-latest
