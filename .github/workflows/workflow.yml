@@ -77,7 +77,10 @@ jobs:
           java-version: '${{ inputs.java }}'
 
       - name: "Run MUnit Tests"
-        run: mvn clean test -Dmule.env="${{ vars.env }}" -Dmule.key="${{ secrets.enc_key }}" -DCONNECTED_APP_ID="${{ secrets.connected_app_id }}" -DCONNECTED_APP_SECRET="${{ secrets.connected_app_secret }}" --settings settings/settings.xml
+        env:
+          nexus_username: ${{ secrets.nexus_username }}
+          nexus_password: ${{ secrets.nexus_password }}
+        run: mvn clean test -Dmule.env="${{ vars.env }}" -Dmule.key="${{ secrets.enc_key }}" -Dconnected_app_id="${{ secrets.connected_app_id }}" -Dconnected_app_secret="${{ secrets.connected_app_secret }}" --settings settings/settings.xml
         
       - name: "Upload MUnit Report"
         uses: actions/upload-artifact@v4
@@ -117,7 +120,7 @@ jobs:
 
       - name: "Build Mule Application"
         run: |
-          mvn -B clean package -Dmule.env="${{ vars.env }}" -Dmule.key="${{ secrets.enc_key }}" -DskipTests -DCONNECTED_APP_ID="${{ secrets.connected_app_id }}" -DCONNECTED_APP_SECRET="${{ secrets.connected_app_secret }}" --settings settings/settings.xml
+          mvn -B clean package -Dmule.env="${{ vars.env }}" -Dmule.key="${{ secrets.enc_key }}" -DskipTests -Dconnected_app_id="${{ secrets.connected_app_id }}" -Dconnected_app_secret="${{ secrets.connected_app_secret }}" --settings settings/settings.xml
 
       - name: "Upload Built Artifact"
         uses: actions/upload-artifact@v4
@@ -149,7 +152,7 @@ jobs:
           path: target/
           
       - name: "Publish to Exchange"
-        run: mvn deploy -DskipTests -Dmule.env="${{ vars.env }}" -Dmule.key="${{ secrets.enc_key }}" -DskipTests -DCONNECTED_APP_ID="${{ secrets.connected_app_id }}" -DCONNECTED_APP_SECRET="${{ secrets.connected_app_secret }}" --settings settings/settings.xml
+        run: mvn deploy -DskipTests -Dmule.env="${{ vars.env }}" -Dmule.key="${{ secrets.enc_key }}" -DskipTests -Dconnected_app_id="${{ secrets.connected_app_id }}" -Dconnected_app_secret="${{ secrets.connected_app_secret }}" --settings settings/settings.xml
 
   # 4. Deploying the application to CloudHub 2.0
   Deploy-To-CloudHub:
@@ -185,7 +188,7 @@ jobs:
             -D"mule.env"="${{ vars.env }}" \
             -D"mule.key"="${{ secrets.enc_key }}" \
             -DapplicationName="oms-sys-api-${{ vars.env }}" \
-            -DCONNECTED_APP_ID="${{ secrets.connected_app_id }}" \
-            -DCONNECTED_APP_SECRET="${{ secrets.connected_app_secret }}" \
+            -Dconnected_app_id="${{ secrets.connected_app_id }}" \
+            -Dconnected_app_secret="${{ secrets.connected_app_secret }}" \
             --settings settings/settings.xml
 
