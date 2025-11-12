@@ -3,16 +3,22 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
   <servers>
-<server>
+	  <server>
       <id>anypoint-exchange-v3</id>
 	  <username>~~~Client~~~</username>
-	  <password>${CONNECTED_APP_ID}~?~${CONNECTED_APP_SECRET}</password>
+	  <password>${connected_app_id}~?~${connected_app_secret}</password>
+    </server>
+	
+	  <server>
+      <id>MuleRepository</id>
+      <username>${nexus_username}</username>
+      <password>${nexus_password}</password>
     </server>
   </servers>
 
 <profiles>
     <profile>
-      <id>mule-repos</id>
+      <id>Radhika</id>
 
       <repositories>
         <repository>
@@ -32,6 +38,15 @@
           <snapshots><enabled>false</enabled></snapshots>
         </repository>
 
+		  <repository>
+			<id>MuleRepository</id>
+          	<name>Mule Repository</name>
+          	<url>https://repository.mulesoft.org/nexus-ee/content/repositories/releases-ee/</url>
+          	<layout>default</layout>
+          	<releases><enabled>true</enabled></releases>
+          	<snapshots><enabled>false</enabled></snapshots>
+        </repository>    
+
       </repositories>
       <pluginRepositories>
         <pluginRepository>
@@ -42,11 +57,12 @@
           <snapshots><enabled>false</enabled></snapshots>
         </pluginRepository>
       </pluginRepositories>
+		
     </profile>
   </profiles>
 
   <activeProfiles>
-    <activeProfile>mule-repos</activeProfile>
+    <activeProfile>Radhika</activeProfile>
   </activeProfiles>
 
 </settings>
