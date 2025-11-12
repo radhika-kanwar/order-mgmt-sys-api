@@ -10,7 +10,7 @@
     </server>
 	
 	  <server>
-      <id>MuleRepository</id>
+      <id>mule-repository</id>
       <username>${nexus_username}</username>
       <password>${nexus_password}</password>
     </server>
@@ -39,7 +39,7 @@
         </repository>
 
 		  <repository>
-			<id>MuleRepository</id>
+			<id>mule-repository</id>
           	<name>Mule Repository</name>
           	<url>https://repository.mulesoft.org/nexus-ee/content/repositories/releases-ee/</url>
           	<layout>default</layout>
